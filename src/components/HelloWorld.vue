@@ -1,42 +1,136 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex" target="_blank" rel="noopener">vuex</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <div id="people">
+  <v-client-table v-model="companies" :columns="columns" />
+</div>
 </template>
 
 <script>
+import axios from 'axios'
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+ data(){
+            return{
+                columns: [ 'Name', 'Roll','Flat','Money'],
+                data: [],
+                companies: [],
+                sortBy: 'Name',
+                sortDirection: 'DESC',
+                search: '',
+            }
+            
+        },
+  methods:{
+    /*
+  Re-sorts the cafes by what was selected.
+*/
+resortCafes(  ){
+  /*
+    Checks to see if what the user selected to sort by
+    is the same as it's been. If it is, then we toggle the
+    direction.
+  */
+  // if( by == this.sortBy ){
+  //   if( this.sortDirection == 'ASC' ){
+  //     this.sortDirection = 'DESC';
+  //   }else{
+  //     this.sortDirection = 'ASC';
+  //   }
+  // }
+
+  /*
+    If the sort by is different we set the sort by to what the
+    user selected and defualt the direction to 'ASC'
+  */
+  // if( by != this.sortBy ){
+  //   this.sortDirection = 'ASC';
+  //   this.sortBy = by;
+  // }
+
+  /*
+    Switch by what the sort by is set to, and run the method
+    to sort by that column.
+  */
+  switch( this.sortBy ){
+    case 'Name':
+      this.sortCompaniesByName();
+    break;
+    case 'Roll':
+      this.sortCompaniesByRoll();
+    break;
+    case 'Flat':
+      this.sortCompaniesByFlat();
+    break;
+    case 'Money':
+      this.sortCompaniesByMoney();
+    break;
   }
+},
+
+  sortCompaniesByName(){
+  this.companies.sort( function( a, b ){
+    if( this.sortDirection == 'ASC' ){
+      return ( ( a.Name == b.Name ) ? 0 : ( ( a.Name > b.Name ) ? 1 : -1 ) );
+    }
+
+    if( this.sortDirection == 'DESC' ){
+      return ( ( a.name == b.Name ) ? 0 : ( ( a.Name < b.Name ) ? 1 : -1 ) );
+    }
+  }.bind(this));
+},
+
+  sortCompaniesByRoll(){
+  this.companies.sort( function( a, b ){
+    if( this.sortDirection == 'ASC' ){
+      return parseInt( a.Roll ) < parseInt( b.Roll ) ? 1 : -1;
+    }
+
+    if( this.sortDirection == 'DESC' ){
+      return parseInt( a.Roll ) > parseInt( b.Roll ) ? 1 : -1;
+    }
+  }.bind(this));
+},
+
+/*
+  Sorts the companies by pending actions.
+*/
+sortCompaniesByFlat(){
+  this.companies.sort( function( a, b ){
+    if( this.sortDirection == 'ASC' ){
+      return parseInt( a.Flat ) < parseInt( b.Flat ) ? 1 : -1;
+    }
+
+    if( this.sortDirection == 'DESC' ){
+      return parseInt( a.Flat ) > parseInt( b.Flat ) ? 1 : -1;
+    }
+  }.bind(this));
+},
+sortCompaniesByMoney(){
+  this.companies.sort( function( a, b ){
+    if( this.sortDirection == 'ASC' ){
+      return parseInt( a.Money ) < parseInt( b.Money ) ? 1 : -1;
+    }
+
+    if( this.sortDirection == 'DESC' ){
+      return parseInt( a.Money ) > parseInt( b.Money ) ? 1 : -1;
+    }
+  }.bind(this));
+},
+
+
+  },
+        async mounted() {
+    // this.$refs.myTable.setLoadingState(true);
+    const {data} = await axios.get('https://5837ea57-1bef-4f4b-b85b-b1e827c002b5.mock.pstmn.io/');
+    this.data = data;
+    this.companies = data;
+    this.sortBy = this.$route.query.sortBy;
+    this.resortCafes();
+    // console.log(this.data);
+    // this.sortCompaniesByName();
+    // console.log(this.$route.query.sortBy);
+    // console.log(this.companies);
+    // this.$refs.myTable.setLoadingState(false);
+
+}
 }
 </script>
 
